@@ -16,6 +16,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import modelo.Empleado;
+import ventanas.reportes.VentanaReporteEstadoAreas;
 
 /**
  *
@@ -634,6 +635,15 @@ public class VentanaPrincipalSistemaNuevo extends javax.swing.JFrame {
 
         imnReporteEstadoAreas.setText("Reporte de Estado de Areas");
         bmnReportes.add(imnReporteEstadoAreas);
+        imnReporteEstadoAreas.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                if (sistema == null)
+                    sistema = new Sistema();
+                VentanaReporteEstadoAreas dlg = new VentanaReporteEstadoAreas(VentanaPrincipalSistemaNuevo.this,
+                        sistema);
+                dlg.setVisible(true);
+            }
+        });
 
         imnReporteMovimientos.setText("Reporte de Movimientos");
         imnReporteMovimientos.addActionListener(new java.awt.event.ActionListener() {
@@ -915,7 +925,7 @@ public class VentanaPrincipalSistemaNuevo extends javax.swing.JFrame {
      * @param args the command line arguments
      */
 
-    // Variables declaration - do not modify//GEN-BEGIN:variables
+    
     private javax.swing.JMenuBar barraMenu;
     private javax.swing.JMenu bmnAreas;
     private javax.swing.JMenu bmnEmpleados;
@@ -933,5 +943,5 @@ public class VentanaPrincipalSistemaNuevo extends javax.swing.JFrame {
     private javax.swing.JMenuItem imnReporteInteligente;
     private javax.swing.JMenuItem imnReporteMovimientos;
     private javax.swing.JPanel pnlPrincipal;
-    // End of variables declaration//GEN-END:variables
+    
 }

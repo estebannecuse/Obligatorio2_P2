@@ -185,6 +185,176 @@ public class VentanaPrincipalSistemaNuevo extends javax.swing.JFrame {
         imnMovimientoAreas.setText("Realizar Movimiento");
         bmnAreas.add(imnMovimientoAreas);
 
+        imnMovimientoAreas.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                if (sistema == null)
+                    sistema = new Sistema();
+
+                // 1) Mes del movimiento
+                String sMes = JOptionPane.showInputDialog(
+                        VentanaPrincipalSistemaNuevo.this,
+                        "Ingrese el mes (1..12):",
+                        "Movimiento - Mes",
+                        JOptionPane.QUESTION_MESSAGE);
+                if (sMes == null)
+                    return; // cancelado
+
+                int mes;
+                try {
+                    mes = Integer.parseInt(sMes.trim());
+                    if (mes < 1 || mes > 12)
+                        throw new NumberFormatException();
+                } catch (NumberFormatException nfe) {
+                    JOptionPane.showMessageDialog(
+                            VentanaPrincipalSistemaNuevo.this,
+                            "Mes inválido. Debe ser un entero entre 1 y 12.",
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                // 2) Seleccionar área ORIGEN
+                ArrayList<Area> areas = sistema.listarAreasOrdenadasPorNombre();
+                if (areas.size() < 2) {
+                    JOptionPane.showMessageDialog(
+                            VentanaPrincipalSistemaNuevo.this,
+                            "Debe haber al menos dos áreas para mover empleados.",
+                            "Info",
+                            JOptionPane.INFORMATION_MESSAGE);
+                    return;
+                }
+
+                String[] nombresAreas = new String[areas.size()];
+                int i = 0;
+                while (i < areas.size()) {
+                    nombresAreas[i] = areas.get(i).getNombre();
+                    i++;
+                }
+
+                String selOrigen = (String) JOptionPane.showInputDialog(
+                        VentanaPrincipalSistemaNuevo.this,
+                        "Seleccione el área ORIGEN:",
+                        "Movimiento - Origen",
+                        JOptionPane.QUESTION_MESSAGE,
+                        null,
+                        nombresAreas,
+                        nombresAreas[0]);
+                if (selOrigen == null)
+                    return;
+
+                Area origen = sistema.buscarAreaPorNombre(selOrigen);
+                if (origen == null) {
+                    JOptionPane.showMessageDialog(VentanaPrincipalSistemaNuevo.this, "Área origen no encontrada.",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                // 3) Seleccionar EMPLEADO (filtrado por área ORIGEN)
+                ArrayList<Empleado> empsOrigen = new ArrayList<Empleado>(origen.getEmpleados());
+                if (empsOrigen.isEmpty()) {
+                    JOptionPane.showMessageDialog(
+                            VentanaPrincipalSistemaNuevo.this,
+                            "El área origen no tiene empleados.",
+                            "Info",
+                            JOptionPane.INFORMATION_MESSAGE);
+                    return;
+                }
+
+                String[] nombresEmps = new String[empsOrigen.size()];
+                int j = 0;
+                while (j < empsOrigen.size()) {
+                    Empleado e = empsOrigen.get(j);
+                    nombresEmps[j] = e.getNombre() + " (" + e.getCi() + ")  $"
+                            + String.format("%.2f", e.getSalarioMensual());
+                    j++;
+                }
+
+                String selEmp = (String) JOptionPane.showInputDialog(
+                        VentanaPrincipalSistemaNuevo.this,
+                        "Seleccione el empleado a mover:",
+                        "Movimiento - Empleado",
+                        JOptionPane.QUESTION_MESSAGE,
+                        null,
+                        nombresEmps,
+                        nombresEmps[0]);
+                if (selEmp == null)
+                    return;
+
+                // Extraer CI del seleccionado (entre paréntesis)
+                String ciEmp = selEmp.substring(selEmp.indexOf('(') + 1, selEmp.indexOf(')'));
+                Empleado empleadoSel = null;
+                int k = 0;
+                while (k < empsOrigen.size()) {
+                    if (empsOrigen.get(k).getCi().equalsIgnoreCase(ciEmp)) {
+                        empleadoSel = empsOrigen.get(k);
+                        break;
+                    }
+                    k++;
+                }
+                if (empleadoSel == null) {
+                    JOptionPane.showMessageDialog(VentanaPrincipalSistemaNuevo.this, "Empleado no encontrado.", "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                // 4) Seleccionar área DESTINO (todas menos la origen)
+                ArrayList<Area> destinos = new ArrayList<Area>();
+                int d = 0;
+                while (d < areas.size()) {
+                    if (areas.get(d) != origen) {
+                        destinos.add(areas.get(d));
+                    }
+                    d++;
+                }
+
+                String[] nombresDest = new String[destinos.size()];
+                int t = 0;
+                while (t < destinos.size()) {
+                    nombresDest[t] = destinos.get(t).getNombre();
+                    t++;
+                }
+
+                String selDestino = (String) JOptionPane.showInputDialog(
+                        VentanaPrincipalSistemaNuevo.this,
+                        "Seleccione el área DESTINO:",
+                        "Movimiento - Destino",
+                        JOptionPane.QUESTION_MESSAGE,
+                        null,
+                        nombresDest,
+                        nombresDest[0]);
+                if (selDestino == null)
+                    return;
+
+                Area destino = sistema.buscarAreaPorNombre(selDestino);
+                if (destino == null) {
+                    JOptionPane.showMessageDialog(VentanaPrincipalSistemaNuevo.this, "Área destino no encontrada.",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                // 5) Ejecutar movimiento (lógica en Sistema)
+                boolean ok = sistema.moverEmpleado(mes, empleadoSel, destino);
+                if (ok) {
+                    JOptionPane.showMessageDialog(
+                            VentanaPrincipalSistemaNuevo.this,
+                            "Movimiento realizado:\n" +
+                                    empleadoSel.getNombre() + " : " + origen.getNombre() + " → " + destino.getNombre() +
+                                    "\nMes: " + mes);
+                    // Actualizar listado y detalle (por si cambia orden o pertenencia)
+                    refrescarListaEmpleados();
+                } else {
+                    JOptionPane.showMessageDialog(
+                            VentanaPrincipalSistemaNuevo.this,
+                            "No se pudo realizar el movimiento.\n" +
+                                    "- Verifique presupuesto del área destino para los meses restantes.\n" +
+                                    "- Verifique que el mes esté entre 1 y 12.\n" +
+                                    "- Verifique que origen y destino sean diferentes.",
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
         barraMenu.add(bmnAreas);
 
         bmnManagers.setText("Managers");
@@ -435,6 +605,7 @@ public class VentanaPrincipalSistemaNuevo extends javax.swing.JFrame {
                         JOptionPane.showMessageDialog(
                                 VentanaPrincipalSistemaNuevo.this,
                                 "Empleado creado correctamente.");
+                        refrescarListaEmpleados();
                     } else {
                         JOptionPane.showMessageDialog(
                                 VentanaPrincipalSistemaNuevo.this,

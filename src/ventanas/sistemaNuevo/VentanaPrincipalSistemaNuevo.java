@@ -5,6 +5,7 @@
 package ventanas.sistemaNuevo;
 
 import ventanas.demo.*;
+import ventanas.reportes.VentanaReporteMovimientos;
 import logica.Sistema;
 import java.util.ArrayList;
 import modelo.Area;
@@ -799,8 +800,12 @@ public class VentanaPrincipalSistemaNuevo extends javax.swing.JFrame {
     }// GEN-LAST:event_imnReporteInteligenteActionPerformed
 
     private void imnReporteMovimientosActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_imnReporteMovimientosActionPerformed
-        // TODO add your handling code here:
-    }// GEN-LAST:event_imnReporteMovimientosActionPerformed
+        if (sistema == null)
+            sistema = new Sistema();
+
+        VentanaReporteMovimientos dlg = new VentanaReporteMovimientos(this, sistema);
+        dlg.setVisible(true);
+    }
 
     // =============================================
     // Listado y detalle de empleados
